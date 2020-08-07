@@ -13,12 +13,13 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
     best_acc = 0.0
 
     if torch.cuda.is_available():
+        model.cuda()
         device = 'cuda'
     else:
         device = 'cpu'
     
     metrics = {'train_loss' : []}
-    batch_size = 16
+    batch_size = 64
 
     for epoch in range(num_epochs):
 
@@ -79,6 +80,6 @@ if __name__ == "__main__":
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
     # Data loader init
-    data_dir = './dummy_data/'
+    data_dir = 'D:/data_odometry_gray/dataset'
 
-    train_model(model, optimizer, data_dir, num_epochs=2)
+    train_model(model, optimizer, data_dir, num_epochs=4)
