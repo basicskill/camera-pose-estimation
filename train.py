@@ -8,6 +8,15 @@ from dataLoader import DataGetter
 import matplotlib.pyplot as plt
 
 
+def ATEpos(arr_truth, arr_estim):
+    result = 0
+    for i in range(arr_estim):
+        for j in range(3):
+            result += np.power((arr_estim[i][j]-arr_truth[i][j]),2)
+    result = np.sqrt(result/len(arr_estim))
+    return result
+
+
 def train_model(model, optimizer, data_dir, num_epochs=25):
     start_time = time.time()
 
