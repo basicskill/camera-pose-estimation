@@ -7,7 +7,7 @@ import numpy as np
 
 
 class CustomDataSet(Dataset):
-    def __init__(self, main_dir,curr_index, batch_size):
+    def __init__(self, main_dir, curr_index, batch_size):
         self.main_dir = main_dir
         self.image_dir = '/sequences/'
         self.curr_index = curr_index
@@ -70,7 +70,7 @@ class PositioningDataset():
 class DataGetter():
     def __init__(self, main_dir, batch_size, start_index, end_index):
         self.main_dir = main_dir
-        self.curr_index = start_index
+        self.curr_index = start_index - 1
         self.end_index = end_index
         self.index = 0
         self.pos_dir = '/poses/'
@@ -95,15 +95,16 @@ class DataGetter():
         quaternion_batch = all_data[:,:4]
         transitions_batch = all_data[:,4:]
         if len(img_batch) < self.batch_size:
+            if self.curr_index == self.end_index:
+                raise StopIteration
             self.make_datasets()
             img_batch = next(self.train_loader_iterator)
             all_data = next(self.pos_loader_iterator)
             self.quaternions = all_data[0:3]
             self.transitions = all_data[4:]
-        if self.curr_index > self.end_index:
-            return None, None
         return img_batch, quaternion_batch, transitions_batch
     def make_datasets(self):
+        self.curr_index += 1
         self.image_dataset = CustomDataSet(self.main_dir, self.curr_index, self.batch_size)
         self.train_loader = DataLoader(self.image_dataset , batch_size=self.batch_size, shuffle=False)
         self.train_loader_iterator = iter(self.train_loader)
@@ -177,11 +178,11 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    main_dir = './dataset/'
-    batch_size = 64
+    main_dir = './dummy_data/'
+    batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0
     for img_batch, quaternions, transitions in all_data:
         print(str(len(img_batch)) + str(len(quaternions)+ len(transitions)))
         print(i)
-    i+=1
+        i+=1
