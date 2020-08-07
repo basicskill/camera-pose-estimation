@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from copy import deepcopy
 
 class MyNet(nn.Module):
     def __init__(self):
@@ -7,8 +8,8 @@ class MyNet(nn.Module):
         alexnet = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=True)
         
         # Convolutional layers from AlexNet
-        self.conv1 = alexnet.features
-        self.conv2 = alexnet.features # TODO: Does it work??
+        self.conv1 = deepcopy(alexnet.features)
+        self.conv2 = deepcopy(alexnet.features)
 
         self.conv1.requires_grad = False
         self.conv2.requires_grad = False
@@ -24,6 +25,7 @@ class MyNet(nn.Module):
         self.fcQ = nn.Linear(25600, 4)
         self.fcT = nn.Linear(25600, 3)
 
+        self.beta = 10
 
     def forward(self, first, second):
 
@@ -39,3 +41,7 @@ class MyNet(nn.Module):
         q = self.fcQ(spp)
 
         return t, q
+    
+    # TODO: Check dimensions when batch is inserted
+    def loss(self, t, q, t_true, q_true):
+        return torch.norm(t - t_true) + self.beta * torch.norm(q - q_true)
