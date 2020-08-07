@@ -76,15 +76,20 @@ class PositioningDataset():
             positioning_temp += [[[pos[0],pos[1],pos[2]],
                                 [pos[4],pos[5],pos[6]],
                                 [pos[8],pos[9],pos[10]]]]
-        for i in range(len(positioning_temp-1)):
+        for i in range(len(positioning_temp)-1):
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
-        np.array(positioning_temp).reshape(len(positioning_temp), 9)
+        positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
+        #print(positioning_temp)
         for pos in positioning_temp:
             qw = np.sqrt(1+pos[0]+pos[4]+pos[8])/2 # matrix diagonal
             qx = pos[7] - pos[5] / (4*qw)
             qy = pos[2] - pos[6] / (4*qw)
             qz = pos[3] - pos[1] / (4*qw)
+            self.quaternions+=[[qw,qx,qy,qz]]
 
+        self.transitions = np.concatenate((np.diff(self.transitions, axis = 0),[[0,0,0]]), axis=0)
+        
+        self.positioning = np.concatenate((self.quaternions, self.transitions), axis=1)
 
         self.positioning = torch.Tensor(self.positioning)
             

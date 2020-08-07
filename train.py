@@ -19,12 +19,15 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
     else:
         device = 'cpu'
     
-    metrics = {'train_loss' : []}
+    metrics = {
+        'train_loss'    : [],
+        'train_acc'     : [],
+    }
     batch_size = 4
 
     for epoch in range(num_epochs):
 
-        data_loader = DataGetter(data_dir, batch_size, 0, 4)
+        data_loader = DataGetter(data_dir, batch_size, 4, 4)
 
         print('-' * 10)
         print(f'Epoch {epoch}/{num_epochs - 1}')
@@ -100,4 +103,4 @@ if __name__ == "__main__":
     # Data loader init
     data_dir = 'D:/data_odometry_gray/dataset'
 
-    train_model(model, optimizer, data_dir, num_epochs=10)
+    train_model(model, optimizer, data_dir, num_epochs=100)
