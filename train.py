@@ -1,10 +1,12 @@
 import torch
+import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
 from model import MyNet
 import time
 import copy
 from dataLoader import DataGetter
-import torch.optim as optim
 import matplotlib.pyplot as plt
+
 
 def train_model(model, optimizer, data_dir, num_epochs=25):
     start_time = time.time()
@@ -20,10 +22,11 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
     
     metrics = {'train_loss' : []}
     batch_size = 4
+    writer = SummaryWriter()
 
     for epoch in range(num_epochs):
 
-        data_loader = DataGetter(data_dir, batch_size, 0, 4)
+        data_loader = DataGetter(data_dir, batch_size, 4, 4)
 
         print('-' * 10)
         print(f'Epoch {epoch}/{num_epochs - 1}')
@@ -71,8 +74,8 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
 
         print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
         
-        metrics[phase+"_loss"].append(epoch_loss)
-        metrics[phase+"_acc"].append(epoch_acc)
+        writer.add_scalar(phase + ' Train', epoch_loss, epoch)
+        writer.add_scalar(phase + ' Train', epoch_loss, epoch)
         
         # deep copy the model
         if phase == 'val' and epoch_acc > best_acc:
@@ -89,6 +92,10 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
     plt.show()
 
     model.load_state_dict(best_model_wts)
+
+    while input('Press Enter') != "":
+        pass
+
     return model, metrics
 
 if __name__ == "__main__":
