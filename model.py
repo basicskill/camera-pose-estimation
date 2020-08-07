@@ -32,16 +32,16 @@ class MyNet(nn.Module):
         out1 = self.conv1(first)
         out2 = self.conv2(second)
 
-        spp1 = torch.cat([ pool(out1).flatten() for pool in self.pyramid], dim=0)
-        spp2 = torch.cat([ pool(out2).flatten() for pool in self.pyramid], dim=0)
+        spp1 = torch.cat([ torch.flatten(pool(out1), start_dim=1) for pool in self.pyramid ], dim=1)
+        spp2 = torch.cat([ torch.flatten(pool(out2), start_dim=1) for pool in self.pyramid ], dim=1)
 
-        spp = torch.cat((spp1, spp2), dim=0)
+        spp = torch.cat((spp1, spp2), dim=1)
 
         t = self.fcT(spp)
         q = self.fcQ(spp)
 
         return t, q
     
-    # TODO: Check dimensions when batch is inserted
     def loss(self, t, q, t_true, q_true):
-        return torch.norm(t - t_true) + self.beta * torch.norm(q - q_true)
+        out_loss = torch.norm(t - t_true, dim=1) + self.beta * torch.norm(q - q_true, dim=1)
+        return out_loss.mean()
