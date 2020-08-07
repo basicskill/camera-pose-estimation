@@ -53,7 +53,9 @@ class PositioningDataset():
         positioning_path = self.main_dir + self.pos_dir
         positioning = open(positioning_path + str(self.curr_index).zfill(2)+'.txt',"r")
         positioning_3x4 = positioning.readlines()
+        positioning.close()
         self.positioning = []
+        positioning_temp = []
         self.transitions = []
         self.quaternions = []
         for pos in positioning_3x4:
@@ -61,12 +63,29 @@ class PositioningDataset():
             for j in range(len(pos)):
                 #word = word[1:-1]
                 pos[j] = float(pos[j])
+            self.transitions+=[[pos[3],pos[7],pos[11]]]
             #quaternions
+            """
             qw = np.sqrt(1+pos[0]+pos[5]+pos[10])/2 # matrix diagonal
             qx = pos[9] - pos[6] / (4*qw)
             qy = pos[2] - pos[8] / (4*qw)
             qz = pos[4] - pos[1] / (4*qw)
             self.positioning += [[qw,qx,qy,qz,pos[3],pos[7],pos[11]]]
+            """
+            self.positioning += [pos]
+            positioning_temp += [[[pos[0],pos[1],pos[2]],
+                                [pos[4],pos[5],pos[6]],
+                                [pos[8],pos[9],pos[10]]]]
+        for i in range(len(positioning_temp-1)):
+            positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
+        np.array(positioning_temp).reshape(len(positioning_temp), 9)
+        for pos in positioning_temp:
+            qw = np.sqrt(1+pos[0]+pos[4]+pos[8])/2 # matrix diagonal
+            qx = pos[7] - pos[5] / (4*qw)
+            qy = pos[2] - pos[6] / (4*qw)
+            qz = pos[3] - pos[1] / (4*qw)
+
+
         self.positioning = torch.Tensor(self.positioning)
             
         """qw= √(1 + m00 + m11 + m22) /2
