@@ -91,7 +91,10 @@ class DataGetter():
         return 0
 
     def __getitem__(self, idx):
-        img_batches = next(self.train_loader_iterator1)
+        try:
+            img_batches = next(self.train_loader_iterator1)
+        except:
+            raise StopIteration
         quaternion_batch=0
         transitions_batch=0
         all_data = next(self.pos_loader_iterator)
