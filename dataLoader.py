@@ -21,12 +21,16 @@ class CustomDataSet(Dataset):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
-        img_loc = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx])
-        image = Image.open(img_loc)
-        tensor_image = transforms.ToTensor()(image)
-        if tensor_image.shape[0] == 1:
-            tensor_image = torch.cat([tensor_image, tensor_image, tensor_image], dim=0)
-        return tensor_image
+        img_loc1 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx])
+        img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx+1])
+        image1 = Image.open(img_loc1)
+        image2 = Image.open(img_loc2)
+        tensor_image1 = transforms.ToTensor()(image1)
+        tensor_image2 = transforms.ToTensor()(image2)
+        if tensor_image1.shape[0] == 1:
+            tensor_image1 = torch.cat([tensor_image1, tensor_image1, tensor_image1], dim=0)
+            tensor_image2 = torch.cat([tensor_image2, tensor_image2, tensor_image2], dim=0)
+        return [tensor_image1, tensor_image2]
 
 class PositioningDataset():
     def __init__(self, main_dir,curr_index, batch_size):
@@ -78,7 +82,6 @@ class DataGetter():
         self.image_dataset = None
         self.train_loader = None
         self.train_loader_iterator1 = None
-        self.train_loader_iterator2 = None
         self.pos_dataset = None
         self.pos_loader = None
         self.pos_loader_iterator = None
@@ -88,31 +91,27 @@ class DataGetter():
         return 0
 
     def __getitem__(self, idx):
-        img_batch1 = next(self.train_loader_iterator1)
-        img_batch2 = next(self.train_loader_iterator2)
+        img_batches = next(self.train_loader_iterator1)
         quaternion_batch=0
         transitions_batch=0
         all_data = next(self.pos_loader_iterator)
         #  all_data = torch.transpose(all_data, 0 ,1)
         quaternion_batch = all_data[:,:4]
         transitions_batch = all_data[:,4:]
-        if len(img_batch1) < self.batch_size:
+        if len(img_batches[1]) < self.batch_size:
             if self.curr_index == self.end_index:
                 raise StopIteration
             self.make_datasets()
-            img_batch1 = next(self.train_loader_iterator1)
-            img_batch2 = next(self.train_loader_iterator2) 
+            img_batches = next(self.train_loader_iterator1)
             all_data = next(self.pos_loader_iterator)
             self.quaternions = all_data[0:3]
             self.transitions = all_data[4:]
-        return img_batch1,img_batch2, quaternion_batch, transitions_batch
+        return img_batches[0],img_batches[1], quaternion_batch, transitions_batch
     def make_datasets(self):
         self.curr_index += 1
         self.image_dataset = CustomDataSet(self.main_dir, self.curr_index, self.batch_size)
         self.train_loader = DataLoader(self.image_dataset , batch_size=self.batch_size, shuffle=False)
         self.train_loader_iterator1 = iter(self.train_loader)
-        self.train_loader_iterator2 = iter(self.train_loader)
-        next(self.train_loader_iterator2) 
         self.pos_dataset = PositioningDataset(self.main_dir, self.curr_index, self.batch_size)
         self.pos_loader = DataLoader(self.pos_dataset , batch_size=self.batch_size, shuffle=False)
         self.pos_loader_iterator = iter(self.pos_loader)
@@ -182,11 +181,14 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    main_dir = './dummy_data/'
+    main_dir = 'D:\\data_odometry_gray\\dataset'
     batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0
     for img_batch1, img_batch2, quaternions, transitions in all_data:
-        print(str(len(img_batch)) + str(len(quaternions)+ len(transitions)))
+        print(str(len(img_batch1)) + str(len(quaternions)+ len(transitions)))
         print(i)
+        print(img_batch1[0,0,0,0])
+        print(img_batch2[0,0,0,0])
         i+=1
+
