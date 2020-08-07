@@ -2,6 +2,7 @@ test/*
 test.py
 dataset/*
 *data/*
+runs/*
 
 
 
