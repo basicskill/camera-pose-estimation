@@ -40,11 +40,14 @@ class PositioningDataset():
         self.batch_size = batch_size
         self.positioning = []
         self.make_dataset()
+
     def __len__(self):
         return len(self.positioning)
+
     def __getitem__(self, idx):
         #position = self.positioning[idx]
         return self.positioning[idx]
+        
     def make_dataset(self):
         #data part
         positioning_path = self.main_dir + self.pos_dir
@@ -91,25 +94,25 @@ class DataGetter():
         return 0
 
     def __getitem__(self, idx):
+        img_batches = None
         try:
             img_batches = next(self.train_loader_iterator1)
         except:
-            raise StopIteration
-        quaternion_batch=0
-        transitions_batch=0
-        all_data = next(self.pos_loader_iterator)
-        #  all_data = torch.transpose(all_data, 0 ,1)
-        quaternion_batch = all_data[:,:4]
-        transitions_batch = all_data[:,4:]
-        if len(img_batches[1]) < self.batch_size:
             if self.curr_index == self.end_index:
                 raise StopIteration
             self.make_datasets()
             img_batches = next(self.train_loader_iterator1)
-            all_data = next(self.pos_loader_iterator)
-            self.quaternions = all_data[0:3]
-            self.transitions = all_data[4:]
+
+        quaternion_batch=0
+        transitions_batch=0
+
+        all_data = next(self.pos_loader_iterator)
+
+        quaternion_batch = all_data[:,:4]
+        transitions_batch = all_data[:,4:]
+
         return img_batches[0],img_batches[1], quaternion_batch, transitions_batch
+
     def make_datasets(self):
         self.curr_index += 1
         self.image_dataset = CustomDataSet(self.main_dir, self.curr_index, self.batch_size)
@@ -118,12 +121,14 @@ class DataGetter():
         self.pos_dataset = PositioningDataset(self.main_dir, self.curr_index, self.batch_size)
         self.pos_loader = DataLoader(self.pos_dataset , batch_size=self.batch_size, shuffle=False)
         self.pos_loader_iterator = iter(self.pos_loader)
+
     def __iter__(self):
         return self
     
     def __next__(self):
         self.index +=1
         return self[self.index]
+
 """
 #image part
 img_folder_path = 'D:/data_odometry_gray/dataset/sequences/00/image_0'

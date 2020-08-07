@@ -18,11 +18,11 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
         device = 'cpu'
     
     metrics = {'train_loss' : []}
-    batch_size = 32
+    batch_size = 16
 
     for epoch in range(num_epochs):
 
-        data_loader = DataGetter(data_dir, batch_size, 0, 0)
+        data_loader = DataGetter(data_dir, batch_size, 0, 1)
 
         print('-' * 10)
         print(f'Epoch {epoch}/{num_epochs - 1}')
