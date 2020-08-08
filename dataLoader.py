@@ -58,6 +58,7 @@ class PositioningDataset():
         self.positioning = []
         positioning_temp = []
         self.transitions = []
+        transitions_temp = []
         self.quaternions = []
         self.euler = []
         for pos in positioning_3x4:
@@ -68,8 +69,9 @@ class PositioningDataset():
             rot = np.array([[pos[0],pos[1],pos[2]],
                     [pos[4],pos[5],pos[6]],
                     [pos[8],pos[9],pos[10]]])
-            self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
-            
+
+            #self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
+            transitions_temp.append(np.array([pos[3],pos[7],pos[11]]))
             """
             #quaternions
             qw = np.sqrt(1+pos[0]+pos[5]+pos[10])/2 # matrix diagonal
@@ -81,20 +83,25 @@ class PositioningDataset():
             self.positioning += [pos]
             positioning_temp += [rot]
             self.euler+=[euler_angles_from_rotation_matrix(rot)]
+        transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
+        #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
+            self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i]) @ np.transpose(np.array(transitions_temp[i]))),-1))
+        self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
-        #print(positioning_temp)
+        #end
+        
         for pos in positioning_temp:
             qw = np.sqrt(1+pos[0]+pos[4]+pos[8])/2 # matrix diagonal
             qx = pos[7] - pos[5] / (4*qw)
             qy = pos[2] - pos[6] / (4*qw)
             qz = pos[3] - pos[1] / (4*qw)
             self.quaternions+=[[qw,qx,qy,qz]]
-        print(self.transitions)
-        self.transitions = np.concatenate((np.diff(self.transitions, axis = 0),[[0,0,0]]), axis=0)
+        #print(self.transitions)
         
-        self.positioning = np.concatenate((self.euler, self.transitions), axis=1)
+        
+        self.positioning = np.concatenate((np.array(self.euler), self.transitions), axis=1)
 
         self.positioning = torch.Tensor(self.positioning)
             
