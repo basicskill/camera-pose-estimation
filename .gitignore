@@ -5,6 +5,7 @@ dataset/*
 runs/*
 .vs/*
 .vscode/*
+models/*
 .plot/*
 
 

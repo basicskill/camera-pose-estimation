@@ -75,7 +75,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                 img_batch2 = img_batch2.to(device)
                 quaternions = quaternions.to(device)
                 transitions = transitions.to(device)
-
                 epoch_size += img_batch1.size(0)
 
                 optimizer.zero_grad()
@@ -92,6 +91,8 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                     # statistics
                     running_loss += loss.item() * img_batch1.size(0)
                     running_corrects += ATEpos(transitions, t_out)
+                # print(f'{time.time() - bacth_start} s epoha')
+                bacth_start = time.time()
 
             epoch_loss = running_loss / epoch_size
             epoch_acc = running_corrects / epoch_size
