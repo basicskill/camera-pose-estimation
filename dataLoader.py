@@ -137,7 +137,7 @@ class DataGetter():
         quaternion_batch = all_data[:,:4]
         transitions_batch = all_data[:,4:]
 
-        return img_batches[0][0::sampling],img_batches[1][0::sampling], quaternion_batch[0::sampling], transitions_batch[0::sampling]
+        return img_batches[0][0::self.sampling],img_batches[1][0::self.sampling], quaternion_batch[0::self.sampling], transitions_batch[0::self.sampling]
 
     def make_datasets(self):
         self.curr_index += 1

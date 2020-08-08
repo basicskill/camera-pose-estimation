@@ -54,11 +54,11 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
             if phase == 'train':
                 phase = 'train'
                 model.train()
-                data_loader = DataGetter(data_dir, batch_size, 1, 1)
+                data_loader = DataGetter(data_dir, batch_size, 0, 5, sampling=2)
 
             else:
                 model.eval()
-                data_loader = DataGetter(data_dir, batch_size, 4, 4)
+                data_loader = DataGetter(data_dir, batch_size, 6, 6)
 
             running_loss = 0.0
             running_corrects = 0
@@ -91,6 +91,8 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
 
             epoch_loss = running_loss / epoch_size
             epoch_acc = running_corrects / epoch_size
+
+            print(f'Epoch size: {epoch_size}')
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
             
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
     # Data loader init
-    data_dir = 'D:/data_odometry_gray/dataset'
+    data_dir = './dataset/'
 
     model, metrics = train_model(model, optimizer, data_dir, num_epochs=10)
 
