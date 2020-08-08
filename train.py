@@ -70,10 +70,10 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
             epoch_size = 0
 
             # Iterate over data.
-            for img_batch1, img_batch2, quaternions, transitions in data_loader:
+            for img_batch1, img_batch2, YPR, transitions in data_loader:
                 img_batch1 = img_batch1.to(device)
                 img_batch2 = img_batch2.to(device)
-                quaternions = quaternions.to(device)
+                YPR = YPR.to(device)
                 transitions = transitions.to(device)
                 epoch_size += img_batch1.size(0)
 
@@ -81,7 +81,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                 
                 with torch.set_grad_enabled(phase == 'train'):
                     t_out, q_out = model(img_batch1, img_batch2)
-                    loss = model.loss(t_out, q_out, transitions, quaternions)
+                    loss = model.loss(t_out, q_out, transitions, YPR)
 
                     if phase == 'train':
                         loss.backward()
