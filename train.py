@@ -22,7 +22,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
     if not path.exists('runs/'):
         os.mkdir('runs')
     if name == 'model_':
-        name += str(start_time) 
+        name += time.ctime(start_time)
     
     name = 'runs/' + name + '/'
     os.mkdir(name)

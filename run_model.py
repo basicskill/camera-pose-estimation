@@ -24,7 +24,7 @@ if __name__ == "__main__":
     model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=1)
 
     # Save model and results
-    name = str(time.time())
+    name = time.ctime(time.time())
     with open(name + '.pkl', 'wb') as f:
         pickle.dump(metrics, f)
     
