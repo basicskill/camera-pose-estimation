@@ -15,14 +15,15 @@ class CustomDataSet(Dataset):
         self.batch_size = batch_size
         #all_imgs = os.listdir(main_dir+self.image_dir)
         all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/')
-        self.total_imgs = all_imgs
+        self.total_imgs = np.array(all_imgs)
+        self.total_imgs_second = np.array(all_imgs[1:] + [all_imgs[0]])
         
     def __len__(self):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
         img_loc1 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx])
-        img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx+1])
+        img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs_second[idx])
         image1 = Image.open(img_loc1)
         image2 = Image.open(img_loc2)
         tensor_image1 = transforms.ToTensor()(image1)
@@ -146,7 +147,7 @@ class DataGetter():
         self.pos_loader = None
         self.pos_loader_iterator = None
         self.make_datasets()
-    
+        self.shake_baby()
     def __len__(self):
         return 0
 
@@ -178,6 +179,15 @@ class DataGetter():
         self.pos_dataset = PositioningDataset(self.main_dir, self.curr_index, self.batch_size)
         self.pos_loader = DataLoader(self.pos_dataset , batch_size=self.batch_size, shuffle=False)
         self.pos_loader_iterator = iter(self.pos_loader)
+        self.shake_baby()
+    def shake_baby(self):
+        randomize = np.arange(len(self.image_dataset.total_imgs))
+        np.random.shuffle(randomize)
+        self.pos_dataset.positioning = self.pos_dataset.positioning[randomize]
+        self.image_dataset.total_imgs = self.image_dataset.total_imgs[randomize]
+        self.image_dataset.total_imgs_second = self.image_dataset.total_imgs_second[randomize]
+        
+
 
     def refresh(self):
         self.curr_index = self.start_index - 1
