@@ -6,6 +6,7 @@ runs/*
 .vs/*
 .vscode/*
 models/*
+.plot/*
 
 
 # Byte-compiled / optimized / DLL files
