@@ -3,7 +3,8 @@ test.py
 dataset/*
 *data/*
 runs/*
-
+.vs/*
+.vscode/*
 
 
 # Byte-compiled / optimized / DLL files
