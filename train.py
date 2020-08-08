@@ -67,7 +67,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                 data_loader = valGetter
 
             running_loss = 0.0
-            running_corrects = 0.0
+            running_error = 0.0
             epoch_size = 0
 
             # Iterate over data.
@@ -94,13 +94,13 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                     _error = ATEpos(transitions, t_out)
             
                     running_loss += _loss
-                    running_error += _corrects
+                    running_error += _error
 
                     metrics[phase + '_loss'].append(_loss)
                     metrics[phase + '_error'].append(_error)
 
             epoch_loss = running_loss # / epoch_size
-            epoch_error = running_corrects # / epoch_size
+            epoch_error = running_error # / epoch_size
 
             print(f'Epoch size: {epoch_size}')
 
