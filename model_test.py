@@ -1,13 +1,17 @@
 import torch
 from model import MyNet
 from dataLoader import DataGetter
+import numpy as np
+from plotting import plotXYZ
 
 model_name = './models/1596840425.779855.model'
-data_dir = './dataset/'
-folder_num = 4
+data_dir = 'D:/data_odometry_gray/dataset'
+folder_num = 0
 
 getter = DataGetter(data_dir, 4, folder_num, folder_num)
-model = torch.load(model_name)
+model = MyNet()
+model.load_state_dict(torch.load(model_name))
+
 if torch.cuda.is_available():
     device = 'cuda'
     model.cuda()
@@ -16,19 +20,27 @@ else:
 
 model.eval()
 
-ground_truth = torch.tensor([])
-solution = torch.tensor([])
+# ground_truth = torch.tensor([]).to('cpu')
+# solution = torch.tensor([]).to('cpu')
+gt = np.array([[0, 0, 0]])
+sol = np.array([[0, 0, 0]])
 
 for img_batch1, img_batch2, _, transitions in getter:
     img_batch1 = img_batch1.to(device)
     img_batch2 = img_batch2.to(device)
     transitions = transitions.to(device)
 
-    t_out, _ = model(img_batch1, img_batch2) 
+    #t_out, _ = model(img_batch1, img_batch2) 
+    # print(t_out.shape)
+    #t_out = t_out.cpu()
+    transitions = transitions.cpu()
+    #sol = np.concatenate([sol, t_out.detach().numpy()], axis=0)
+    gt = np.concatenate([gt, transitions.detach().numpy()], axis=0)
 
-    solution = torch.cat([solution, t_out], dim=0)
-    ground_truth = torch.cat([ground_truth, transitions], dim=0)
+sol = torch.tensor(sol[1:])
+gt = torch.tensor(gt[1:])
 
-print(solution.shape)
-print(ground_truth.shape)
+gt = torch.add(gt, 5)
+plotXYZ(gt, folder_num)
+plotXYZ(sol, folder_num)
 
