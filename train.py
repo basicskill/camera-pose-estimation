@@ -38,7 +38,7 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
         'val_loss'      : [],
         'val_acc'       : [],
     }
-    batch_size = 4
+    batch_size = 8
     # writer = SummaryWriter()
 
     for epoch in range(num_epochs):
@@ -52,7 +52,7 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
             if phase == 'train':
                 phase = 'train'
                 model.train()
-                data_loader = DataGetter(data_dir, batch_size, 1, 1)
+                data_loader = DataGetter(data_dir, batch_size, 0, 3)
 
             else:
                 model.eval()
@@ -64,12 +64,13 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
 
             # Iterate over data.
             # TODO: Break data into train and val subsections
+            
+            bacth_start = time.time()
             for img_batch1, img_batch2, quaternions, transitions in data_loader:
                 img_batch1 = img_batch1.to(device)
                 img_batch2 = img_batch2.to(device)
                 quaternions = quaternions.to(device)
                 transitions = transitions.to(device)
-
                 epoch_size += img_batch1.size(0)
 
                 optimizer.zero_grad()
@@ -86,6 +87,8 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
                     # statistics
                     running_loss += loss.item() * img_batch1.size(0)
                     running_corrects += ATEpos(transitions, t_out)
+                # print(f'{time.time() - bacth_start} s epoha')
+                bacth_start = time.time()
 
             epoch_loss = running_loss / epoch_size
             epoch_acc = running_corrects / epoch_size
@@ -109,12 +112,12 @@ def train_model(model, optimizer, data_dir, num_epochs=25):
     print(f'Training complete in {(time_elapsed // 60):.0f}m {time_elapsed % 60:.0f}s')
     print(f'Best val Acc: {best_acc:4f}')
 
-    plt.plot(metrics['train_loss'])
-    plt.plot(metrics['train_acc'])
+    # plt.plot(metrics['train_loss'])
+    # plt.plot(metrics['train_acc'])
 
-    plt.plot(metrics['val_loss'])
-    plt.plot(metrics['train_acc'])
-    plt.show()
+    # plt.plot(metrics['val_loss'])
+    # plt.plot(metrics['train_acc'])
+    # plt.show()
 
     model.load_state_dict(best_model_wts)
 
@@ -132,5 +135,8 @@ if __name__ == "__main__":
 
     # Save model and results
     name = str(time.time())
-    pickle.dump(metrics, name + '.pickle')
-    torch.save(model.state_dict(), name + '.model')
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(metrics, f)
+    
+    model.eval()
+    torch.save(model.state_dict(), 'model_' + name + '.pkl')
