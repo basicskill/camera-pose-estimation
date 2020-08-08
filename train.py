@@ -22,13 +22,13 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
     if not path.exists('runs/'):
         os.mkdir('runs')
     if name == 'model_':
-        name += time.ctime(start_time)
+        name += time.ctime(start_time).replace(' ', '').replace(':', '_')
     
     name = 'runs/' + name + '/'
     os.mkdir(name)
 
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    best_error = 0.0
 
     if torch.cuda.is_available():
         model.cuda()
@@ -39,20 +39,21 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
     
     metrics = {
         'train_loss'    : [],
-        'train_acc'     : [],
+        'train_error'     : [],
         'val_loss'      : [],
-        'val_acc'       : [],
+        'val_error'       : [],
     }
-    # writer = SummaryWriter()
 
     for epoch in range(num_epochs):
         
         print('-' * 10)
-        print(f'Epoch {epoch}/{num_epochs - 1}')
+        print(f'Epoch {epoch+1}/{num_epochs}')
         print('-' * 10)
 
         trainGetter.refresh()
         valGetter.refresh()
+
+
 
         for phase in ['train', 'val']:
             print(phase + " in progress...")
@@ -66,7 +67,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                 data_loader = valGetter
 
             running_loss = 0.0
-            running_corrects = 0
+            running_error = 0.0
             epoch_size = 0
 
             # Iterate over data.
@@ -89,27 +90,29 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
 
                     # statistics
-                    running_loss += loss.item() * img_batch1.size(0)
-                    running_corrects += ATEpos(transitions, t_out)
-                # print(f'{time.time() - bacth_start} s epoha')
-                bacth_start = time.time()
+                    _loss = loss.item() / img_batch1.size(0)
+                    _error = ATEpos(transitions, t_out)
+            
+                    running_loss += _loss
+                    running_error += _error
 
-            epoch_loss = running_loss / epoch_size
-            epoch_acc = running_corrects / epoch_size
+                    metrics[phase + '_loss'].append(_loss)
+                    metrics[phase + '_error'].append(_error)
+
+            epoch_loss = running_loss # / epoch_size
+            epoch_error = running_error # / epoch_size
 
             print(f'Epoch size: {epoch_size}')
 
-            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+            print(f'{phase} Loss: {epoch_loss:.4f} Error: {epoch_error:.4f}')
             
-            metrics[phase + '_loss'].append(epoch_loss)
-            metrics[phase + '_acc'].append(epoch_acc)
 
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
             
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
+            if phase == 'val' and epoch_error > best_error:
+                best_error = epoch_error
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         with open(name + '/epoch' + str(epoch) + '.pickle', 'wb') as f:
@@ -121,7 +124,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
     time_elapsed = time.time() - start_time
     print(f'Training complete in {(time_elapsed // 60):.0f}m {time_elapsed % 60:.0f}s')
-    print(f'Best val Acc: {best_acc:4f}')
+    print(f'Best val Error: {best_error:4f}')
 
     model.load_state_dict(best_model_wts)
 

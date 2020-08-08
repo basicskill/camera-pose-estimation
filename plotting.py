@@ -21,7 +21,7 @@ def plotXYZ(xyz,folder_num,sampling = 1):
     #plt.savefig('plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+ '.png')
 
 def GetGroudnTruth(i):
-    positioning_path = 'C:/Users/DELL/Documents/Python/PSI ML/dataset/poses/'
+    positioning_path = 'D:/data_odometry_gray/dataset/poses/'
     positioning = open(positioning_path + str(i).zfill(2)+'.txt',"r")
     positioning_3x4 = positioning.readlines()
     positioning.close()
