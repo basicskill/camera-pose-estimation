@@ -4,6 +4,7 @@ import os
 from PIL import Image
 from torchvision import transforms
 import numpy as np
+import math
 
 
 class CustomDataSet(Dataset):
@@ -12,8 +13,7 @@ class CustomDataSet(Dataset):
         self.image_dir = '/sequences/'
         self.curr_index = curr_index
         self.batch_size = batch_size
-        all_imgs = os.listdir(main_dir)
-        self.total_imgs = all_imgs
+        #all_imgs = os.listdir(main_dir+self.image_dir)
         all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/')
         self.total_imgs = all_imgs
         
@@ -39,6 +39,7 @@ class PositioningDataset():
         self.curr_index = curr_index
         self.batch_size = batch_size
         self.positioning = []
+        self.euler = []
         self.make_dataset()
 
     def __len__(self):
@@ -58,14 +59,19 @@ class PositioningDataset():
         positioning_temp = []
         self.transitions = []
         self.quaternions = []
+        self.euler = []
         for pos in positioning_3x4:
             pos = pos.split()
             for j in range(len(pos)):
                 #word = word[1:-1]
                 pos[j] = float(pos[j])
-            self.transitions+=[[pos[3],pos[7],pos[11]]]
-            #quaternions
+            rot = np.array([[pos[0],pos[1],pos[2]],
+                    [pos[4],pos[5],pos[6]],
+                    [pos[8],pos[9],pos[10]]])
+            self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
+            
             """
+            #quaternions
             qw = np.sqrt(1+pos[0]+pos[5]+pos[10])/2 # matrix diagonal
             qx = pos[9] - pos[6] / (4*qw)
             qy = pos[2] - pos[8] / (4*qw)
@@ -73,9 +79,8 @@ class PositioningDataset():
             self.positioning += [[qw,qx,qy,qz,pos[3],pos[7],pos[11]]]
             """
             self.positioning += [pos]
-            positioning_temp += [[[pos[0],pos[1],pos[2]],
-                                [pos[4],pos[5],pos[6]],
-                                [pos[8],pos[9],pos[10]]]]
+            positioning_temp += [rot]
+            self.euler+=[euler_angles_from_rotation_matrix(rot)]
         for i in range(len(positioning_temp)-1):
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
@@ -86,10 +91,10 @@ class PositioningDataset():
             qy = pos[2] - pos[6] / (4*qw)
             qz = pos[3] - pos[1] / (4*qw)
             self.quaternions+=[[qw,qx,qy,qz]]
-
+        print(self.transitions)
         self.transitions = np.concatenate((np.diff(self.transitions, axis = 0),[[0,0,0]]), axis=0)
         
-        self.positioning = np.concatenate((self.quaternions, self.transitions), axis=1)
+        self.positioning = np.concatenate((self.euler, self.transitions), axis=1)
 
         self.positioning = torch.Tensor(self.positioning)
             
@@ -97,7 +102,23 @@ class PositioningDataset():
         qx = (m21 - m12)/( 4 *qw)
         qy = (m02 - m20)/( 4 *qw)
         qz = (m10 - m01)/( 4 *qw)"""
+def isclose(x, y, rtol=1.e-5, atol=1.e-8):
+    return abs(x-y) <= atol + rtol * abs(y)
 
+def euler_angles_from_rotation_matrix(R):
+    phi = 0.0
+    if isclose(R[2,0],-1.0):
+        theta = math.pi/2.0
+        psi = math.atan2(R[0,1],R[0,2])
+    elif isclose(R[2,0],1.0):
+        theta = -math.pi/2.0
+        psi = math.atan2(-R[0,1],-R[0,2])
+    else:
+        theta = -math.asin(R[2,0])
+        cos_theta = math.cos(theta)
+        psi = math.atan2(R[2,1]/cos_theta, R[2,2]/cos_theta)
+        phi = math.atan2(R[1,0]/cos_theta, R[0,0]/cos_theta)
+    return [psi, theta, phi]
 class DataGetter():
     def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1):
         self.main_dir = main_dir
@@ -134,8 +155,8 @@ class DataGetter():
 
         all_data = next(self.pos_loader_iterator)
 
-        quaternion_batch = all_data[:,:4]
-        transitions_batch = all_data[:,4:]
+        quaternion_batch = all_data[:,:3]
+        transitions_batch = all_data[:,3:]
 
         return img_batches[0][0::self.sampling],img_batches[1][0::self.sampling], quaternion_batch[0::self.sampling], transitions_batch[0::self.sampling]
 
@@ -227,7 +248,8 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    main_dir = 'D:\\data_odometry_gray\\dataset'
+    #main_dir = 'D:\\data_odometry_gray\\dataset'
+    main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
     batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0
