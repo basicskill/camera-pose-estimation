@@ -1,5 +1,5 @@
-from torch.utils.data import Dataset, DataLoader
 import torch
+from torch.utils.data import Dataset, DataLoader
 import os
 from PIL import Image
 from torchvision import transforms
@@ -99,13 +99,14 @@ class PositioningDataset():
         qz = (m10 - m01)/( 4 *qw)"""
 
 class DataGetter():
-    def __init__(self, main_dir, batch_size, start_index, end_index):
+    def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1):
         self.main_dir = main_dir
         self.curr_index = start_index - 1
         self.end_index = end_index
         self.index = 0
         self.pos_dir = '/poses/'
-        self.batch_size = batch_size
+        self.batch_size = batch_size * sampling
+        self.sampling = sampling
         self.image_dataset = None
         self.train_loader = None
         self.train_loader_iterator1 = None
@@ -135,7 +136,7 @@ class DataGetter():
         quaternion_batch = all_data[:,:4]
         transitions_batch = all_data[:,4:]
 
-        return img_batches[0],img_batches[1], quaternion_batch, transitions_batch
+        return img_batches[0][0::sampling],img_batches[1][0::sampling], quaternion_batch[0::sampling], transitions_batch[0::sampling]
 
     def make_datasets(self):
         self.curr_index += 1
