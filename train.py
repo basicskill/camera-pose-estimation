@@ -89,8 +89,12 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
 
                     # statistics
-                    running_loss += loss.item() * img_batch1.size(0)
+                    running_loss = loss.item()  #  * img_batch1.size(0)
                     running_corrects += ATEpos(transitions, t_out)
+            
+                    metrics[phase + '_loss'].append(running_loss)
+                    metrics[phase + '_acc'].append(running_corrects)
+                    
                 # print(f'{time.time() - bacth_start} s epoha')
                 bacth_start = time.time()
 
@@ -101,8 +105,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
             
-            metrics[phase + '_loss'].append(epoch_loss)
-            metrics[phase + '_acc'].append(epoch_acc)
 
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
