@@ -58,7 +58,7 @@ class PositioningDataset():
         self.positioning = []
         positioning_temp = []
         self.transitions = []
-        transitions_temp = []
+        transitions_temp = []    
         self.quaternions = []
         self.euler = []
         for pos in positioning_3x4:
@@ -72,6 +72,7 @@ class PositioningDataset():
 
             #self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
             transitions_temp.append(np.array([pos[3],pos[7],pos[11]]))
+            #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
             """
             #quaternions
             qw = np.sqrt(1+pos[0]+pos[5]+pos[10])/2 # matrix diagonal
@@ -80,14 +81,16 @@ class PositioningDataset():
             qz = pos[4] - pos[1] / (4*qw)
             self.positioning += [[qw,qx,qy,qz,pos[3],pos[7],pos[11]]]
             """
+            
             self.positioning += [pos]
             positioning_temp += [rot]
             self.euler+=[euler_angles_from_rotation_matrix(rot)]
         transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
         #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
+            self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i])) @ np.transpose(transitions_temp[i]),-1))
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
-            self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i]) @ np.transpose(np.array(transitions_temp[i]))),-1))
+            
         self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
         #end
