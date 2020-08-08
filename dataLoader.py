@@ -101,6 +101,7 @@ class PositioningDataset():
 class DataGetter():
     def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1):
         self.main_dir = main_dir
+        self.start_index = start_index
         self.curr_index = start_index - 1
         self.end_index = end_index
         self.index = 0
@@ -114,7 +115,7 @@ class DataGetter():
         self.pos_loader = None
         self.pos_loader_iterator = None
         self.make_datasets()
-
+    
     def __len__(self):
         return 0
 
@@ -146,6 +147,18 @@ class DataGetter():
         self.pos_dataset = PositioningDataset(self.main_dir, self.curr_index, self.batch_size)
         self.pos_loader = DataLoader(self.pos_dataset , batch_size=self.batch_size, shuffle=False)
         self.pos_loader_iterator = iter(self.pos_loader)
+
+    def refresh(self):
+        self.curr_index = start_index - 1
+        self.index = 0
+        self.image_dataset = None
+        self.train_loader = None
+        self.train_loader_iterator1 = None
+        self.pos_dataset = None
+        self.pos_loader = None
+        self.pos_loader_iterator = None
+        self.make_datasets()
+
 
     def __iter__(self):
         return self
