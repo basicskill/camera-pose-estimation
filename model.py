@@ -22,7 +22,7 @@ class MyNet(nn.Module):
             # nn.AdaptiveMaxPool2d((13, 13))
         ]
 
-        self.fcQ = nn.Linear(25600, 4)
+        self.fcQ = nn.Linear(25600, 3)
         self.fcT = nn.Linear(25600, 3)
 
         self.beta = 10
