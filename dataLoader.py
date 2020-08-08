@@ -91,7 +91,7 @@ class PositioningDataset():
             qy = pos[2] - pos[6] / (4*qw)
             qz = pos[3] - pos[1] / (4*qw)
             self.quaternions+=[[qw,qx,qy,qz]]
-        print(self.transitions)
+        # print(self.transitions)
         self.transitions = np.concatenate((np.diff(self.transitions, axis = 0),[[0,0,0]]), axis=0)
         
         self.positioning = np.concatenate((self.euler, self.transitions), axis=1)
