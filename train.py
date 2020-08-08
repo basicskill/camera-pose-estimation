@@ -22,7 +22,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
     if not path.exists('runs/'):
         os.mkdir('runs')
     if name == 'model_':
-        name += str(start_time) 
+        name += time.ctime(start_time).replace(' ', '').replace(':', '_')
     
     name = 'runs/' + name + '/'
     os.mkdir(name)
@@ -94,7 +94,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
             
                     metrics[phase + '_loss'].append(running_loss)
                     metrics[phase + '_acc'].append(running_corrects)
-                    
+
                 # print(f'{time.time() - bacth_start} s epoha')
                 bacth_start = time.time()
 
