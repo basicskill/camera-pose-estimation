@@ -149,7 +149,7 @@ class DataGetter():
         self.pos_loader_iterator = iter(self.pos_loader)
 
     def refresh(self):
-        self.curr_index = start_index - 1
+        self.curr_index = self.start_index - 1
         self.index = 0
         self.image_dataset = None
         self.train_loader = None
