@@ -5,6 +5,7 @@ dataset/*
 runs/*
 .vs/*
 .vscode/*
+.plot/*
 
 
 # Byte-compiled / optimized / DLL files

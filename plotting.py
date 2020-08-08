@@ -1,20 +1,24 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
+import pickle
 
-
-def plotXYZ(xyz):
+def plotXYZ(xyz,folder_num,sampling = 1):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    ax = plt.axes(projection='3d')
-    print(xyz.shape)
-    ax.plot3D(xyz[:,0], xyz[:,1], xyz[:,2], 'blue')
-    xyz = torch.add(xyz, 5)
+    ground_truth = GetGroudnTruth(folder_num)
+    for i in range(1,len(xyz)):
+        xyz[i] += xyz[i-1]
+    ax.plot3D(ground_truth[:,0], ground_truth[:,1], ground_truth[:,2], 'blue')
     ax.plot3D(xyz[:,0], xyz[:,1], xyz[:,2], 'red')
     ax.set_xlabel('X axis')
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
     plt.show()
+    torch.save(xyz, 'plot/'+str(folder_num)+'plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+'.pickle'+'.pt')
+    #pickle.dump(fig, open('plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+'.pickle', 'wb'))
+    #plt.savefig('plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+ '.png')
 
 def GetGroudnTruth(i):
     positioning_path = 'C:/Users/DELL/Documents/Python/PSI ML/dataset/poses/'
@@ -32,7 +36,8 @@ def GetGroudnTruth(i):
         
     transitions = torch.Tensor(transitions)
     return transitions
-
+"""
 n = 10
 for i in range(n):
-    plotXYZ(GetGroudnTruth(i))
+    plotXYZ(GetGroudnTruth(i),1)
+    """
