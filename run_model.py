@@ -18,10 +18,10 @@ if __name__ == "__main__":
     data_dir = 'D:\data_odometry_gray\dataset'
     batch_size = 8
 
-    trainData = DataGetter(data_dir, batch_size, 0, 5, sampling=5)
+    trainData = DataGetter(data_dir, batch_size, 1, 3, sampling=5)
     valData = DataGetter(data_dir, batch_size, 6, 7, sampling=2)
 
-    model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=10)
+    model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=4)
 
     # Save model and results
     name = time.ctime(time.time()).replace(' ', '_').replace(':', '_')
