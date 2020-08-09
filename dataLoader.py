@@ -58,6 +58,7 @@ class PositioningDataset():
         positioning.close()
         self.positioning = []
         positioning_temp = []
+        self.rot_matrix = []
         self.transitions = []
         transitions_temp = []
         self.euler = []
@@ -84,6 +85,7 @@ class PositioningDataset():
             self.euler+=[euler_angles_from_rotation_matrix(positioning_temp[i])]
             
         #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
+        self.rot_matrix = positioning_temp
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
         #end
         
