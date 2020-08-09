@@ -15,8 +15,8 @@ class CustomDataSet(Dataset):
         self.batch_size = batch_size
         #all_imgs = os.listdir(main_dir+self.image_dir)
         all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/')
-        self.total_imgs = np.array(all_imgs)
-        self.total_imgs_second = np.array(all_imgs[1:] + [all_imgs[0]])
+        self.total_imgs = np.array(all_imgs[:-1])
+        self.total_imgs_second = np.array(all_imgs[1:])
         
     def __len__(self):
         return len(self.total_imgs)
@@ -85,14 +85,15 @@ class PositioningDataset():
             
             self.positioning += [pos]
             positioning_temp += [rot]
-            self.euler+=[euler_angles_from_rotation_matrix(rot)]
-        transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
+            
+        # transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
         #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
             self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i])) @ np.transpose(transitions_temp[i]),-1))
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
+            self.euler+=[euler_angles_from_rotation_matrix(positioning_temp[i])]
             
-        self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
+        #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
         #end
         
@@ -130,8 +131,38 @@ def euler_angles_from_rotation_matrix(R):
         psi = math.atan2(R[2,1]/cos_theta, R[2,2]/cos_theta)
         phi = math.atan2(R[1,0]/cos_theta, R[0,0]/cos_theta)
     return [psi, theta, phi]
+
+def Euler2Rot(euler):
+    x = euler[0, 0]
+    y = euler[0, 1]
+    z = euler[0, 2]
+
+    Rx = torch.tensor(
+        [
+            [np.cos(x), -np.sin(x), 0],
+            [np.sin(x), np.cos(x), 0],
+            [0, 0, 1],
+        ]
+    )
+    Ry = torch.tensor(
+        [
+            [np.cos(y), 0, np.sin(y)],
+            [0, 1, 0],
+            [-np.sin(y), 0, np.cos(y)],
+        ]
+    )
+    Rz = torch.tensor(
+        [
+            [1, 0, 0],
+            [0, np.cos(z), -np.sin(z)],
+            [0, np.sin(z), np.cos(z)],
+        ]
+    )
+
+    return Rx @ Ry @ Rz
+
 class DataGetter():
-    def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1):
+    def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1, randomize_data=True):
         self.main_dir = main_dir
         self.start_index = start_index
         self.curr_index = start_index - 1
@@ -146,8 +177,9 @@ class DataGetter():
         self.pos_dataset = None
         self.pos_loader = None
         self.pos_loader_iterator = None
+        self.randomize_data = randomize_data
         self.make_datasets()
-        self.shake_baby()
+
     def __len__(self):
         return 0
 
@@ -182,7 +214,8 @@ class DataGetter():
         self.shake_baby()
     def shake_baby(self):
         randomize = np.arange(len(self.image_dataset.total_imgs))
-        np.random.shuffle(randomize)
+        if self.randomize_data:
+            np.random.shuffle(randomize)
         self.pos_dataset.positioning = self.pos_dataset.positioning[randomize]
         self.image_dataset.total_imgs = self.image_dataset.total_imgs[randomize]
         self.image_dataset.total_imgs_second = self.image_dataset.total_imgs_second[randomize]
@@ -268,8 +301,8 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    #main_dir = 'D:\\data_odometry_gray\\dataset'
-    main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
+    main_dir = 'D:\\data_odometry_gray\\dataset'
+    #main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
     batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0

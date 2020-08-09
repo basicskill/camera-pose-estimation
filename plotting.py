@@ -8,15 +8,20 @@ def plotXYZ(xyz,folder_num,sampling = 1):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ground_truth = GetGroudnTruth(folder_num)
-    for i in range(1,len(xyz)):
-        xyz[i] += xyz[i-1]
+    # for i in range(1,len(xyz)):
+    #     xyz[i] += xyz[i-1]
     ax.plot3D(ground_truth[:,0], ground_truth[:,1], ground_truth[:,2], 'blue')
-    ax.plot3D(xyz[:,0], xyz[:,1], xyz[:,2], 'red')
     ax.set_xlabel('X axis')
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
+    plt.figure()
+    ax1 = plt.axes(projection='3d')
+    ax1.plot3D(xyz[:,0], xyz[:,1], xyz[:,2], 'red')
+    ax1.set_xlabel('X axis')
+    ax1.set_ylabel('Y axis')
+    ax1.set_zlabel('Z axis')
     plt.show()
-    torch.save(xyz, 'plot/'+str(folder_num)+'plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+'.pickle'+'.pt')
+    # torch.save(xyz, 'plot/'+str(folder_num)+'plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+'.pickle'+'.pt')
     #pickle.dump(fig, open('plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+'.pickle', 'wb'))
     #plt.savefig('plot'+ datetime.now().strftime("%m%d%Y%H%M%S")+ '.png')
 
