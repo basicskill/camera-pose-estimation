@@ -71,18 +71,20 @@ class PositioningDataset():
                     [pos[4],pos[5],pos[6]],
                     [pos[8],pos[9],pos[10]]])
 
+
             #self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
             transitions_temp.append(np.array([pos[3],pos[7],pos[11]]))
             #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
             self.positioning += [pos]
             positioning_temp += [rot]
-            
+
         transitions_temp = np.diff(transitions_temp, axis=0)
+        self.rotation_abs = positioning_temp.copy()
         #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
             self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i])) @ np.transpose(transitions_temp[i]),-1))
-            positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
-            self.euler+=[euler_angles_from_rotation_matrix(positioning_temp[i])]
+            positioning_temp[i] = positioning_temp[i+1] @ np.transpose(positioning_temp[i])
+            self.euler += [euler_angles_from_rotation_matrix(positioning_temp[i])]
             
         #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
         self.rot_matrix = positioning_temp
@@ -101,53 +103,111 @@ class PositioningDataset():
         qx = (m21 - m12)/( 4 *qw)
         qy = (m02 - m20)/( 4 *qw)
         qz = (m10 - m01)/( 4 *qw)"""
-def isclose(x, y, rtol=1.e-5, atol=1.e-8):
-    return abs(x-y) <= atol + rtol * abs(y)
+# def isclose(x, y, rtol=1.e-5, atol=1.e-8):
+#     return abs(x-y) <= atol + rtol * abs(y)
 
+# def euler_angles_from_rotation_matrix(R):
+#     phi = 0.0
+#     if isclose(R[2,0],-1.0):
+#         theta = math.pi/2.0
+#         psi = math.atan2(R[0,1],R[0,2])
+#     elif isclose(R[2,0],1.0):
+#         theta = -math.pi/2.0
+#         psi = math.atan2(-R[0,1],-R[0,2])
+#     else:
+#         theta = -math.asin(R[2,0])
+#         cos_theta = math.cos(theta)
+#         psi = math.atan2(R[2,1]/cos_theta, R[2,2]/cos_theta)
+#         phi = math.atan2(R[1,0]/cos_theta, R[0,0]/cos_theta)
+#     return [psi, theta, phi]
+
+# Calculates Rotation Matrix given euler angles
+
+# Checks if a matrix is a valid rotation matrix.
+def isRotationMatrix(R) :
+    Rt = np.transpose(R)
+    shouldBeIdentity = np.dot(Rt, R)
+    I = np.identity(3, dtype = R.dtype)
+    n = np.linalg.norm(I - shouldBeIdentity)
+    return n < 1e-6
+
+
+# Calculates rotation matrix to euler angles
+# The result is the same as MATLAB except the order
+# of the euler angles ( x and z are swapped ).
 def euler_angles_from_rotation_matrix(R):
-    phi = 0.0
-    if isclose(R[2,0],-1.0):
-        theta = math.pi/2.0
-        psi = math.atan2(R[0,1],R[0,2])
-    elif isclose(R[2,0],1.0):
-        theta = -math.pi/2.0
-        psi = math.atan2(-R[0,1],-R[0,2])
-    else:
-        theta = -math.asin(R[2,0])
-        cos_theta = math.cos(theta)
-        psi = math.atan2(R[2,1]/cos_theta, R[2,2]/cos_theta)
-        phi = math.atan2(R[1,0]/cos_theta, R[0,0]/cos_theta)
-    return [psi, theta, phi]
 
-def Euler2Rot(euler):
-    x = euler[0, 0]
-    y = euler[0, 1]
-    z = euler[0, 2]
+    assert(isRotationMatrix(R))
+    
+    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+    
+    singular = sy < 1e-6
 
-    Rx = torch.tensor(
-        [
-            [np.cos(x), -np.sin(x), 0],
-            [np.sin(x), np.cos(x), 0],
-            [0, 0, 1],
-        ]
-    )
-    Ry = torch.tensor(
-        [
-            [np.cos(y), 0, np.sin(y)],
-            [0, 1, 0],
-            [-np.sin(y), 0, np.cos(y)],
-        ]
-    )
-    Rz = torch.tensor(
-        [
-            [1, 0, 0],
-            [0, np.cos(z), -np.sin(z)],
-            [0, np.sin(z), np.cos(z)],
-        ]
-    )
+    if  not singular :
+        x = math.atan2(R[2,1] , R[2,2])
+        y = math.atan2(-R[2,0], sy)
+        z = math.atan2(R[1,0], R[0,0])
+    else :
+        x = math.atan2(-R[1,2], R[1,1])
+        y = math.atan2(-R[2,0], sy)
+        z = 0
+
+    return [x, y, z]
 
 
-    return Rx @ Ry @ Rz
+# def Euler2Rot(euler):
+#     euler = euler.flatten()
+#     x = euler[0]
+#     y = euler[1]
+#     z = euler[2]
+
+#     Rx = torch.tensor(
+#         [
+#             [np.cos(x), -np.sin(x), 0],
+#             [np.sin(x), np.cos(x), 0],
+#             [0, 0, 1],
+#         ]
+#     )
+#     Ry = torch.tensor(
+#         [
+#             [np.cos(y), 0, np.sin(y)],
+#             [0, 1, 0],
+#             [-np.sin(y), 0, np.cos(y)],
+#         ]
+#     )
+#     Rz = torch.tensor(
+#         [
+#             [1, 0, 0],
+#             [0, np.cos(z), -np.sin(z)],
+#             [0, np.sin(z), np.cos(z)],
+#         ]
+#     )
+#     return Rx @ Ry @ Rz
+
+# Calculates Rotation Matrix given euler angles.
+def Euler2Rot(theta) :
+    
+    R_x = np.array([[1,         0,                  0                   ],
+                    [0,         math.cos(theta[0]), -math.sin(theta[0]) ],
+                    [0,         math.sin(theta[0]), math.cos(theta[0])  ]
+                    ])
+        
+        
+                    
+    R_y = np.array([[math.cos(theta[1]),    0,      math.sin(theta[1])  ],
+                    [0,                     1,      0                   ],
+                    [-math.sin(theta[1]),   0,      math.cos(theta[1])  ]
+                    ])
+                
+    R_z = np.array([[math.cos(theta[2]),    -math.sin(theta[2]),    0],
+                    [math.sin(theta[2]),    math.cos(theta[2]),     0],
+                    [0,                     0,                      1]
+                    ])
+                    
+                    
+    R = np.dot(R_z, np.dot( R_y, R_x ))
+
+    return R
 
 class DataGetter():
     def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1, randomize_data=True):

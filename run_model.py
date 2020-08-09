@@ -21,7 +21,7 @@ if __name__ == "__main__":
     trainData = DataGetter(data_dir, batch_size, 1, 6, sampling=5)
     valData = DataGetter(data_dir, batch_size, 8, 10, sampling=4)
 
-    model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=50)
+    model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=10)
 
     # Save model and results
     name = time.ctime(time.time()).replace(' ', '_').replace(':', '_')
