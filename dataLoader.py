@@ -59,8 +59,7 @@ class PositioningDataset():
         self.positioning = []
         positioning_temp = []
         self.transitions = []
-        transitions_temp = []    
-        self.quaternions = []
+        transitions_temp = []
         self.euler = []
         for pos in positioning_3x4:
             pos = pos.split()
@@ -74,19 +73,10 @@ class PositioningDataset():
             #self.transitions.append(np.reshape(np.transpose(np.transpose(rot) @ np.transpose(np.array([[pos[3],pos[7],pos[11]]]))),-1))
             transitions_temp.append(np.array([pos[3],pos[7],pos[11]]))
             #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
-            """
-            #quaternions
-            qw = np.sqrt(1+pos[0]+pos[5]+pos[10])/2 # matrix diagonal
-            qx = pos[9] - pos[6] / (4*qw)
-            qy = pos[2] - pos[8] / (4*qw)
-            qz = pos[4] - pos[1] / (4*qw)
-            self.positioning += [[qw,qx,qy,qz,pos[3],pos[7],pos[11]]]
-            """
-            
             self.positioning += [pos]
             positioning_temp += [rot]
             
-        # transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
+        transitions_temp = np.diff(transitions_temp, axis=0)
         #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
             self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i])) @ np.transpose(transitions_temp[i]),-1))
@@ -97,12 +87,7 @@ class PositioningDataset():
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
         #end
         
-        for pos in positioning_temp:
-            qw = np.sqrt(1+pos[0]+pos[4]+pos[8])/2 # matrix diagonal
-            qx = pos[7] - pos[5] / (4*qw)
-            qy = pos[2] - pos[6] / (4*qw)
-            qz = pos[3] - pos[1] / (4*qw)
-            self.quaternions+=[[qw,qx,qy,qz]]
+        
         #print(self.transitions)
         
         
@@ -158,6 +143,7 @@ def Euler2Rot(euler):
             [0, np.sin(z), np.cos(z)],
         ]
     )
+
 
     return Rx @ Ry @ Rz
 
@@ -301,8 +287,8 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    main_dir = 'D:\\data_odometry_gray\\dataset'
-    #main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
+    #main_dir = 'D:\\data_odometry_gray\\dataset'
+    main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
     batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0
