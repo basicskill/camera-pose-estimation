@@ -1,46 +1,52 @@
 import torch
 from model import MyNet
-from dataLoader import DataGetter
+from dataLoader import DataGetter, Euler2Rot
 import numpy as np
 from plotting import plotXYZ
+from tkinter import filedialog as fd 
 
-model_name = './models/1596840425.779855.model'
 data_dir = 'D:/data_odometry_gray/dataset'
-folder_num = 0
+folder_num = 1
+batch_size = 1
 
-getter = DataGetter(data_dir, 4, folder_num, folder_num)
+model_name = fd.askopenfilename()
 model = MyNet()
 model.load_state_dict(torch.load(model_name))
+
+getter = DataGetter(data_dir, batch_size, folder_num, folder_num, randomize_data=False)
 
 if torch.cuda.is_available():
     device = 'cuda'
     model.cuda()
 else:
     device = 'cpu'
-
 model.eval()
 
-# ground_truth = torch.tensor([]).to('cpu')
-# solution = torch.tensor([]).to('cpu')
-gt = np.array([[0, 0, 0]])
-sol = np.array([[0, 0, 0]])
 
-for img_batch1, img_batch2, _, transitions in getter:
+running_R = torch.eye(3, dtype=torch.float)
+running_t = torch.zeros((1, 3), dtype=torch.float)
+positions = torch.tensor([[0, 0, 0]], dtype=torch.float)
+
+
+for img_batch1, img_batch2, _, t in getter:
     img_batch1 = img_batch1.to(device)
     img_batch2 = img_batch2.to(device)
-    transitions = transitions.to(device)
 
-    #t_out, _ = model(img_batch1, img_batch2) 
-    # print(t_out.shape)
-    #t_out = t_out.cpu()
-    transitions = transitions.cpu()
-    #sol = np.concatenate([sol, t_out.detach().numpy()], axis=0)
-    gt = np.concatenate([gt, transitions.detach().numpy()], axis=0)
+    # TODO: change swap outputs
+    t, Ojler = model(img_batch1, img_batch2)
+    t = t.cpu()
+    t = t.detach()
+    Ojler = Ojler.cpu()
+    Ojler = Ojler.detach()
 
-sol = torch.tensor(sol[1:])
-gt = torch.tensor(gt[1:])
+    # Reshaping
+    O = Ojler.numpy().flatten()
+    Rot = torch.tensor(Euler2Rot(O), dtype=torch.float)
+    t = t.reshape((3,1))
 
-gt = torch.add(gt, 5)
-plotXYZ(gt, folder_num)
-plotXYZ(sol, folder_num)
+    running_t += (torch.transpose(running_R, 0, 1) @ t).reshape((1, 3))
+    running_R = Rot @ running_R
+    positions = torch.cat((positions, running_t), dim=0)
+
+plotXYZ(positions[1:], folder_num)
 

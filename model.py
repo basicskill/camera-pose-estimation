@@ -38,7 +38,6 @@ class MyNet(nn.Module):
         spp = torch.cat((spp1, spp2), dim=1)
 
         t = self.fcT(spp)
-        # TODO: Modifikovati za Ojlerove uglove
         q = self.fcQ(spp)
 
         return t, q

@@ -88,7 +88,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                         loss.backward()
                         optimizer.step()
 
-
                     # statistics
                     _loss = loss.item() / img_batch1.size(0)
                     _error = ATEpos(transitions, t_out)
@@ -106,7 +105,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
             print(f'{phase} Loss: {epoch_loss:.4f} Error: {epoch_error:.4f}')
             
-
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
             # writer.add_scalar(phase + ' Train', epoch_loss, epoch)
             
@@ -119,7 +117,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
             pickle.dump(metrics, f)
 
         torch.save(model.state_dict(), name + '/epoch' + str(epoch) + '.model')
-
 
 
     time_elapsed = time.time() - start_time
