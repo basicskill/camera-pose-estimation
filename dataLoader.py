@@ -131,8 +131,38 @@ def euler_angles_from_rotation_matrix(R):
         psi = math.atan2(R[2,1]/cos_theta, R[2,2]/cos_theta)
         phi = math.atan2(R[1,0]/cos_theta, R[0,0]/cos_theta)
     return [psi, theta, phi]
+
+def Euler2Rot(euler):
+    x = euler[0, 0]
+    y = euler[0, 1]
+    z = euler[0, 2]
+
+    Rx = torch.tensor(
+        [
+            [np.cos(x), -np.sin(x), 0],
+            [np.sin(x), np.cos(x), 0],
+            [0, 0, 1],
+        ]
+    )
+    Ry = torch.tensor(
+        [
+            [np.cos(y), 0, np.sin(y)],
+            [0, 1, 0],
+            [-np.sin(y), 0, np.cos(y)],
+        ]
+    )
+    Rz = torch.tensor(
+        [
+            [1, 0, 0],
+            [0, np.cos(z), -np.sin(z)],
+            [0, np.sin(z), np.cos(z)],
+        ]
+    )
+
+    return Rx @ Ry @ Rz
+
 class DataGetter():
-    def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1):
+    def __init__(self, main_dir, batch_size, start_index, end_index, sampling = 1, randomize_data=True):
         self.main_dir = main_dir
         self.start_index = start_index
         self.curr_index = start_index - 1
@@ -147,8 +177,9 @@ class DataGetter():
         self.pos_dataset = None
         self.pos_loader = None
         self.pos_loader_iterator = None
+        self.randomize_data = randomize_data
         self.make_datasets()
-        self.shake_baby()
+
     def __len__(self):
         return 0
 
@@ -183,7 +214,8 @@ class DataGetter():
         self.shake_baby()
     def shake_baby(self):
         randomize = np.arange(len(self.image_dataset.total_imgs))
-        np.random.shuffle(randomize)
+        if self.randomize_data:
+            np.random.shuffle(randomize)
         self.pos_dataset.positioning = self.pos_dataset.positioning[randomize]
         self.image_dataset.total_imgs = self.image_dataset.total_imgs[randomize]
         self.image_dataset.total_imgs_second = self.image_dataset.total_imgs_second[randomize]
