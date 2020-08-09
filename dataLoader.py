@@ -18,19 +18,34 @@ class CustomDataSet(Dataset):
         self.total_imgs = np.array(all_imgs[:-1])
         self.total_imgs_second = np.array(all_imgs[1:])
         
+        self.preprocess = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+
     def __len__(self):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
         img_loc1 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx])
         img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs_second[idx])
-        image1 = Image.open(img_loc1)
-        image2 = Image.open(img_loc2)
-        tensor_image1 = transforms.ToTensor()(image1)
-        tensor_image2 = transforms.ToTensor()(image2)
-        if tensor_image1.shape[0] == 1:
-            tensor_image1 = torch.cat([tensor_image1, tensor_image1, tensor_image1], dim=0)
-            tensor_image2 = torch.cat([tensor_image2, tensor_image2, tensor_image2], dim=0)
+        
+        img1 = Image.open(img_loc1)
+        image1 = Image.new("RGB", img1.size)
+        image1.paste(img1)
+        
+        img2 = Image.open(img_loc2)
+        image2 = Image.new("RGB", img2.size)
+        image2.paste(img2)
+
+        tensor_image1 = self.preprocess(image1)
+        tensor_image2 = self.preprocess(image2)
+        # if tensor_image1[0] == 1:
+        #     tensor_image1 = torch.cat([tensor_image1, tensor_image1, tensor_image1], dim=0)
+        #     tensor_image2 = torch.cat([tensor_image2, tensor_image2, tensor_image2], dim=0)
+
         return [tensor_image1, tensor_image2]
 
 class PositioningDataset():

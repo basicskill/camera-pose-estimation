@@ -16,12 +16,12 @@ if __name__ == "__main__":
 
     # Data loader init
     data_dir = 'D:\data_odometry_gray\dataset'
-    batch_size = 4
+    batch_size = 16
 
-    trainData = DataGetter(data_dir, batch_size, 6, 6, sampling=5, randomize_data=False)
-    valData = DataGetter(data_dir, batch_size, 6, 6, sampling=4, randomize_data=True)
+    trainData = DataGetter(data_dir, batch_size, 1, 6, sampling=4, randomize_data=True)
+    valData = DataGetter(data_dir, batch_size, 7, 7, sampling=4, randomize_data=True)
 
-    model, metrics = train_model(model, optimizer, trainData, valData, num_epochs=50)
+    model, metrics = train_mod3el(model, optimizer, trainData, valData, num_epochs=5)
 
     # Save model and results
     name = time.ctime(time.time()).replace(' ', '_').replace(':', '_')

@@ -25,7 +25,7 @@ class MyNet(nn.Module):
         self.fcQ = nn.Linear(25600, 3)
         self.fcT = nn.Linear(25600, 3)
 
-        self.beta = 10
+        self.beta = 1
 
     def forward(self, first, second):
 

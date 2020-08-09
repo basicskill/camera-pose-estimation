@@ -6,7 +6,7 @@ from plotting import plotXYZ
 from tkinter import filedialog as fd 
 
 data_dir = 'D:/data_odometry_gray/dataset'
-folder_num = 1
+folder_num = 6
 batch_size = 1
 
 model_name = fd.askopenfilename()
