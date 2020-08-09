@@ -16,6 +16,8 @@ def ATEpos(arr_truth, arr_estim):
 
 def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='model_'):
 
+    # writer = SummaryWriter()
+
     start_time = time.time()
 
     # Make folder for model saving
@@ -52,8 +54,6 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
         trainGetter.refresh()
         valGetter.refresh()
-
-
 
         for phase in ['train', 'val']:
             print(phase + " in progress...")
@@ -99,8 +99,8 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                     metrics[phase + '_loss'].append(_loss)
                     metrics[phase + '_error'].append(_error)
 
-            epoch_loss = running_loss # / epoch_size
-            epoch_error = running_error # / epoch_size
+            epoch_loss = running_loss  / epoch_size
+            epoch_error = running_error  / epoch_size
 
             print(f'Epoch size: {epoch_size}')
 

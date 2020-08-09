@@ -15,8 +15,8 @@ class CustomDataSet(Dataset):
         self.batch_size = batch_size
         #all_imgs = os.listdir(main_dir+self.image_dir)
         all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/')
-        self.total_imgs = np.array(all_imgs)
-        self.total_imgs_second = np.array(all_imgs[1:] + [all_imgs[0]])
+        self.total_imgs = np.array(all_imgs[:-1])
+        self.total_imgs_second = np.array(all_imgs[1:])
         
     def __len__(self):
         return len(self.total_imgs)
@@ -85,14 +85,15 @@ class PositioningDataset():
             
             self.positioning += [pos]
             positioning_temp += [rot]
-            self.euler+=[euler_angles_from_rotation_matrix(rot)]
-        transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
+            
+        # transitions_temp = np.concatenate((np.diff(transitions_temp, axis = 0),[[0,0,0]]), axis=0)
         #generating relative transitions and rotations
         for i in range(len(positioning_temp)-1):
             self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[i])) @ np.transpose(transitions_temp[i]),-1))
             positioning_temp[i] = positioning_temp[i+1]@ np.transpose(positioning_temp[i])
+            self.euler+=[euler_angles_from_rotation_matrix(positioning_temp[i])]
             
-        self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
+        #self.transitions.append(np.reshape(np.transpose(np.transpose(positioning_temp[-1]) @ np.transpose(np.array(transitions_temp[-1]))),-1))
         positioning_temp = np.array(positioning_temp).reshape(len(positioning_temp), 9)
         #end
         
@@ -268,8 +269,8 @@ while not_done:
 ### Primer kako radi
 
 if __name__ == "__main__":
-    #main_dir = 'D:\\data_odometry_gray\\dataset'
-    main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
+    main_dir = 'D:\\data_odometry_gray\\dataset'
+    #main_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
     batch_size = 32
     all_data = DataGetter(main_dir, batch_size, 0, 0)
     i = 0
