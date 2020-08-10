@@ -14,13 +14,13 @@ class CustomDataSet(Dataset):
         self.curr_index = curr_index
         self.batch_size = batch_size
         #all_imgs = os.listdir(main_dir+self.image_dir)
-        all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/')
+        all_imgs = os.listdir(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_2/')
         self.total_imgs = np.array(all_imgs[:-1])
         self.total_imgs_second = np.array(all_imgs[1:])
         
         self.preprocess = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize((256, 256)),
+            # transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
@@ -29,8 +29,8 @@ class CustomDataSet(Dataset):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
-        img_loc1 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs[idx])
-        img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_0/', self.total_imgs_second[idx])
+        img_loc1 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_2/', self.total_imgs[idx])
+        img_loc2 = os.path.join(self.main_dir+self.image_dir+str(self.curr_index).zfill(2)+'/image_2/', self.total_imgs_second[idx])
         
         img1 = Image.open(img_loc1)
         image1 = Image.new("RGB", img1.size)

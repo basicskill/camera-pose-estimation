@@ -68,7 +68,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
 
             running_loss = 0.0
             running_error = 0.0
-            epoch_size = 0
+            epoch_size = 0.0
 
             # Iterate over data.
             for img_batch1, img_batch2, YPR, transitions in data_loader:
@@ -89,7 +89,7 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                         optimizer.step()
 
                     # statistics
-                    _loss = loss.item() / img_batch1.size(0)
+                    _loss = loss.item()
                     _error = ATEpos(transitions, t_out)
             
                     running_loss += _loss
@@ -98,8 +98,8 @@ def train_model(model, optimizer, trainGetter, valGetter, num_epochs=25, name='m
                     metrics[phase + '_loss'].append(_loss)
                     metrics[phase + '_error'].append(_error)
 
-            epoch_loss = running_loss  / epoch_size
-            epoch_error = running_error  / epoch_size
+            epoch_loss = running_loss
+            epoch_error = running_error
 
             print(f'Epoch size: {epoch_size}')
 

@@ -4,7 +4,8 @@ from dataLoader import DataGetter, Euler2Rot, euler_angles_from_rotation_matrix
 from copy import deepcopy
 import numpy as np
 
-data_dir = 'D:\data_odometry_gray\dataset'
+# data_dir = 'D:\data_odometry_gray\dataset'
+data_dir = 'D:\data_odometry_color\dataset'
 # data_dir = 'C:/Users/DELL/Documents/Python/PSI ML/dataset'
 batch_size = 1
 folder_num = 6

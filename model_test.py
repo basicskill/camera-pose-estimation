@@ -5,7 +5,8 @@ import numpy as np
 from plotting import plotXYZ
 from tkinter import filedialog as fd 
 
-data_dir = 'D:/data_odometry_gray/dataset'
+# data_dir = 'D:/data_odometry_gray/dataset'
+data_dir = 'D:/data_odometry_color/dataset'
 folder_num = 6
 batch_size = 1
 
@@ -28,11 +29,11 @@ running_t = torch.zeros((1, 3), dtype=torch.float)
 positions = torch.tensor([[0, 0, 0]], dtype=torch.float)
 
 
-for img_batch1, img_batch2, _, t in getter:
+for img_batch1, img_batch2, _, _ in getter:
     img_batch1 = img_batch1.to(device)
     img_batch2 = img_batch2.to(device)
 
-    # TODO: change swap outputs
+    # TODO: swap outputs
     t, Ojler = model(img_batch1, img_batch2)
     t = t.cpu()
     t = t.detach()
@@ -48,5 +49,6 @@ for img_batch1, img_batch2, _, t in getter:
     running_R = Rot @ running_R
     positions = torch.cat((positions, running_t), dim=0)
 
+print(positions.shape)
 plotXYZ(positions[1:], folder_num)
 
